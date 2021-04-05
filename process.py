@@ -69,7 +69,7 @@ def online_processing_3():
     eeg_data = np.reshape(eeg_data, (eeg.shape[0], 1))
     eeg_filtered = resonance.pipe.filter(eeg_data, low_pass_filter)
 
-    # так можно сделать рассчёт земли например
+    # так можно сделать расчёт референта, например
 
     spatial_filter = np.eye(eeg_filtered.SI.channels)  # диагональная матрица
     # [ 1  0  0 ]
@@ -79,7 +79,7 @@ def online_processing_3():
     # [-1  0  0 ]
     # [-1  1  0 ]
     # [-1  0  1 ]
-    spatial_filter = spatial_filter[..., 1:]  # первый канал это земля, убираем его из списка каналов
+    spatial_filter = spatial_filter[..., 1:]  # первый канал это референт, убираем его из списка каналов
     # [-1  1  0 ]
     # [-1  0  1 ]
 
