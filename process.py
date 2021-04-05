@@ -153,8 +153,27 @@ def online_processing_5():
     eeg = resonance.input(0)
     events = resonance.input(1)
 
-    cut_off_frequency = 2
+    cut_off_frequency = 30
     low_pass_filter = sp_sig.butter(4, cut_off_frequency / eeg.SI.samplingRate * 2, btype='low')
     eeg_filtered = resonance.pipe.filter(eeg, low_pass_filter)
+    resonance.createOutput(eeg_filtered, 'data_filtered')
 
-    resonance.createOutput(eeg_filtered, 'out')
+    # берём целевую эпоху, если значение выше порога по каналу ЭМГ
+    window_size = 500
+    window_shift = -500
+    baseline_begin_offset = 0
+    baseline_end_offset = 250
+
+    def interleave_blocks(blocks):
+        return sorted(blocks, key=lambda x: x.TS[0])
+
+    events_si = resonance.si.Event()
+    ts = eeg.TS
+    events_ = [resonance.db.Event(events_si, 10.4e9, '1')]
+
+    data_ = interleave_blocks(eeg_filtered + events_)
+
+    eeg_windowized = resonance.cross.windowize_by_events(data_, events, window_size, window_shift)
+    baselined = resonance.pipe.baseline(eeg_windowized, slice(baseline_begin_offset, baseline_end_offset))
+    result_ = resonance.pipe.transform_to_event(baselined, makeEvent)
+    resonance.createOutput(result_, 'Evtout2')
